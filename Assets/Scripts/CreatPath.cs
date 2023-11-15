@@ -7,13 +7,11 @@ using UnityEngine;
 public class CreatPath : MonoBehaviour
 {
 
-    [SerializeField]
-    private List<Transform> pointsPath;
+    
+    public List<Transform> pointsPath;
     public List<Transform> points;
 
     public float offset = 0.1f;
-
-    public float delta = 0.2f;
 
     private void Awake()
     {

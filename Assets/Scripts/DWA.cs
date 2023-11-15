@@ -18,8 +18,8 @@ public class DWA : MonoBehaviour
     [Header("Координаты центра масс:")]
     public Vector3 myCenterMass;
 
-    [SerializeField]
-    private Transform[] points;
+    
+    public Transform[] points;
 
 
     [Space]
@@ -61,8 +61,8 @@ public class DWA : MonoBehaviour
     private Rigidbody _rb;
 
 
-    [SerializeField]
-    private List<Transform> pointsPath;
+   
+    public List<Transform> pointsPath;
 
 
     Transform minDist;
