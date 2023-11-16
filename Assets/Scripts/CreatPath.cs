@@ -33,6 +33,7 @@ public class CreatPath : MonoBehaviour
                 points.Add(gO.transform);
                
             }
+            points.Add(pointsPath[i]);
         }
     }
     void OnDrawGizmos()

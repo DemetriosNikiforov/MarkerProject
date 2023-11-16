@@ -80,7 +80,7 @@ public class PurePursuitMarker : MonoBehaviour
     private float vTurn = 0;//Convert.ToSingle(40.0 * Mathf.PI / 180.0f)
 
     [SerializeField]
-    private float target_speed = 1f / 3.6f;
+    private float target_speed = 0.0001f / 3.6f;
 
     private float radians = (Mathf.PI / 180);
 
@@ -89,12 +89,22 @@ public class PurePursuitMarker : MonoBehaviour
 
     private int lastindex;
 
+    [SerializeField]
+    private Transform p1;
+    [SerializeField]
+    private Transform p2;
+
+    public Transform pointMarker;
+
+    //[SerializeField]
+    //private float _L;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
         _rb.centerOfMass = myCenterMass;
 
+        //_L = (p1.position - p2.position).sqrMagnitude;
 
 
     }
@@ -117,35 +127,37 @@ public class PurePursuitMarker : MonoBehaviour
 
             float delta = PurePursuitControl(pointsPath, ref target_index);
 
+            UpdateParametrs(a, delta);
+
+
+         
 
 
 
-            //поворот рулевых колес с определенной скоростью
-            //rf.steerAngle = lf.steerAngle = Mathf.Lerp(rf.steerAngle, delta * Mathf.Rad2Deg, speedRotationAngle);
-            //rb.steerAngle = lb.steerAngle = Mathf.Lerp(rb.steerAngle, delta * Mathf.Rad2Deg * -1, speedRotationAngle);
 
-            //rf.steerAngle = lf.steerAngle = ClampAngle(Mathf.Round(delta * Mathf.Rad2Deg),-wheelRotationAngle,wheelRotationAngle);
-            //rb.steerAngle = lb.steerAngle = ClampAngle(Mathf.Round(delta * Mathf.Rad2Deg * -1),-wheelRotationAngle,wheelRotationAngle);
+            lf.steerAngle = Mathf.Lerp(lf.steerAngle, delta * Mathf.Rad2Deg, speedRotationAngle);
+            rf.steerAngle = Mathf.Lerp(rf.steerAngle, delta * Mathf.Rad2Deg, speedRotationAngle);
+            rb.steerAngle = Mathf.Lerp(rb.steerAngle, (delta * Mathf.Rad2Deg) * -1, speedRotationAngle);
+            lb.steerAngle = Mathf.Lerp(lb.steerAngle, (delta * Mathf.Rad2Deg) * -1, speedRotationAngle);
 
-            rf.steerAngle = lf.steerAngle = ClampAngle(Mathf.Round(vTurn * Mathf.Rad2Deg), -wheelRotationAngle, wheelRotationAngle);
-            rb.steerAngle = lb.steerAngle = ClampAngle(Mathf.Round(vTurn * Mathf.Rad2Deg * -1), -wheelRotationAngle, wheelRotationAngle);
-
-
-            lm.motorTorque = rm.motorTorque = vSpeed;
-            lf.motorTorque = lb.motorTorque = vSpeed;
-            rb.motorTorque = rf.motorTorque = vSpeed;
 
             if (vSpeed != 0)
             {
+
                 //сброс замедления
                 lm.brakeTorque = rm.brakeTorque = 0;
                 rf.brakeTorque = rb.brakeTorque = 0;
                 lb.brakeTorque = lf.brakeTorque = 0;
 
+                Debug.Log((vSpeed / Mathf.Abs(vTurn)) * dt);
+
                 //я точно не знаю как работаю такие машины. Поэтому сделал движение по той формуле что нашел в интернете для 6 колесных машин
-                lm.motorTorque = rm.motorTorque += vSpeed * Mathf.Sin(vTurn) ;
-                lf.motorTorque = lb.motorTorque += vSpeed ;
-                rb.motorTorque = rf.motorTorque += vSpeed * Mathf.Sin(vTurn) ;
+                //lm.motorTorque = rm.motorTorque = (vSpeed / vTurn) * dt;//Mathf.Abs()
+                lm.motorTorque = rm.motorTorque = (vSpeed / vTurn) * dt;//Mathf.Abs()
+                //rb.motorTorque = lb.motorTorque = (vSpeed / Mathf.Abs(vTurn)) * dt;
+                //lf.motorTorque = rf.motorTorque = (vSpeed / Mathf.Abs(vTurn)) * dt;
+                //lf.motorTorque = lb.motorTorque = (vSpeed / Mathf.Abs(vTurn)) * dt;
+                //rb.motorTorque = rf.motorTorque = (vSpeed / Mathf.Abs(vTurn)) * dt;
 
             }
             //если кнопки передвижения не нажаты то замедляем маркер
@@ -175,7 +187,7 @@ public class PurePursuitMarker : MonoBehaviour
             rmWheel.transform.rotation = middleWheelsRotation;
             lmWheel.transform.rotation = middleWheelsRotation;
 
-            UpdateParametrs(a, delta);
+
         }
     }
 
@@ -188,7 +200,7 @@ public class PurePursuitMarker : MonoBehaviour
 
         for (int i = 0; i < distances.Length; i++)
         {
-            distances[i] = pointsPath[i].position - transform.position;
+            distances[i] = pointsPath[i].position - pointMarker.position;
         }
 
         List<float> squareDistances = new List<float>();
@@ -201,6 +213,7 @@ public class PurePursuitMarker : MonoBehaviour
 
         index = squareDistances.IndexOf(squareDistances.Min());
 
+        //float J = 0;
         L = 0;
 
         float Lf = k * vSpeed + Lfc;
@@ -208,8 +221,9 @@ public class PurePursuitMarker : MonoBehaviour
         while (Lf > L && (index + 1) < pointsPath.Count)
         {
             Vector3 distancePoint = pointsPath[index + 1].position - pointsPath[index].position;
+            //J += Mathf.Sqrt(distancePoint.sqrMagnitude);
             L += Mathf.Sqrt(distancePoint.sqrMagnitude);
-            //L += distancePoint.sqrMagnitude;
+
 
             index++;
         }
@@ -227,6 +241,7 @@ public class PurePursuitMarker : MonoBehaviour
         //transform.position += dP;
 
         vTurn += vSpeed / L * Mathf.Sin(delta) * dt;
+        ///vTurn += vSpeed / _L * Mathf.Sin(delta) * dt;
 
         vSpeed += a * dt;
     }
@@ -259,7 +274,7 @@ public class PurePursuitMarker : MonoBehaviour
 
         }
 
-        Vector3 r = point - transform.position;
+        Vector3 r = point - pointMarker.position;
         float alpha = Mathf.Atan2(r.z, r.x) - vTurn;
 
         if (vSpeed < 0)
@@ -269,7 +284,7 @@ public class PurePursuitMarker : MonoBehaviour
 
         float Lf = k * vSpeed + Lfc;
 
-        float delta = Mathf.Atan2(2 * L * Mathf.Sin(alpha) / Lf, 1);
+        float delta = ClampAngle(Mathf.Atan2(2 * L * Mathf.Sin(alpha) / Lf, 1) * Mathf.Rad2Deg, -wheelRotationAngle, wheelRotationAngle) * Mathf.Deg2Rad;
 
         pindex = index;
 
@@ -296,9 +311,9 @@ public class PurePursuitMarker : MonoBehaviour
         return value;
     }
 
-    void OnDrawGizmos()
+    /*void OnDrawGizmos()
     {
         Gizmos.color = Color.cyan;
         Gizmos.DrawSphere(transform.position, L);
-    }
+    }*/
 }
