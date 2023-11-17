@@ -82,8 +82,6 @@ public class PurePursuitMarker : MonoBehaviour
     [SerializeField]
     private float target_speed = 0.0001f / 3.6f;
 
-    private float radians = (Mathf.PI / 180);
-
     [SerializeField]
     private int target_index = 0;
 
@@ -121,6 +119,8 @@ public class PurePursuitMarker : MonoBehaviour
     {
         dt = Time.fixedDeltaTime;
 
+
+
         if (lastindex > target_index)
         {
             float a = PContorl(target_speed, vSpeed);
@@ -130,7 +130,7 @@ public class PurePursuitMarker : MonoBehaviour
             UpdateParametrs(a, delta);
 
 
-         
+
 
 
 
@@ -149,11 +149,15 @@ public class PurePursuitMarker : MonoBehaviour
                 rf.brakeTorque = rb.brakeTorque = 0;
                 lb.brakeTorque = lf.brakeTorque = 0;
 
-                Debug.Log((vSpeed / Mathf.Abs(vTurn)) * dt);
+
 
                 //я точно не знаю как работаю такие машины. Поэтому сделал движение по той формуле что нашел в интернете для 6 колесных машин
                 //lm.motorTorque = rm.motorTorque = (vSpeed / vTurn) * dt;//Mathf.Abs()
-                lm.motorTorque = rm.motorTorque = (vSpeed / vTurn) * dt;//Mathf.Abs()
+
+
+                //lm.motorTorque = rm.motorTorque = Mathf.Abs((vSpeed / Mathf.Abs(vTurn)) * dt);
+                lm.motorTorque = rm.motorTorque = (vSpeed / vTurn) * dt;
+
                 //rb.motorTorque = lb.motorTorque = (vSpeed / Mathf.Abs(vTurn)) * dt;
                 //lf.motorTorque = rf.motorTorque = (vSpeed / Mathf.Abs(vTurn)) * dt;
                 //lf.motorTorque = lb.motorTorque = (vSpeed / Mathf.Abs(vTurn)) * dt;
@@ -189,6 +193,12 @@ public class PurePursuitMarker : MonoBehaviour
 
 
         }
+        else
+        {
+            lb.brakeTorque = lf.brakeTorque = speedBreakTorque;
+            rf.brakeTorque = rb.brakeTorque = speedBreakTorque;
+            lm.brakeTorque = rm.brakeTorque = speedBreakTorque;
+        }
     }
 
     private int CalcTargetIndex(List<Transform> pointsPath)
@@ -218,11 +228,12 @@ public class PurePursuitMarker : MonoBehaviour
 
         float Lf = k * vSpeed + Lfc;
 
+        //int t = index;
         while (Lf > L && (index + 1) < pointsPath.Count)
         {
             Vector3 distancePoint = pointsPath[index + 1].position - pointsPath[index].position;
             //J += Mathf.Sqrt(distancePoint.sqrMagnitude);
-            L += Mathf.Sqrt(distancePoint.sqrMagnitude);
+            L += distancePoint.magnitude / 2f;
 
 
             index++;
@@ -277,14 +288,20 @@ public class PurePursuitMarker : MonoBehaviour
         Vector3 r = point - pointMarker.position;
         float alpha = Mathf.Atan2(r.z, r.x) - vTurn;
 
+
         if (vSpeed < 0)
         {
             alpha = Mathf.PI - alpha;
         }
 
+       
+
         float Lf = k * vSpeed + Lfc;
 
+
+
         float delta = ClampAngle(Mathf.Atan2(2 * L * Mathf.Sin(alpha) / Lf, 1) * Mathf.Rad2Deg, -wheelRotationAngle, wheelRotationAngle) * Mathf.Deg2Rad;
+
 
         pindex = index;
 
