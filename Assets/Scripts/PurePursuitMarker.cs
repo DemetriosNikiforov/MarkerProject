@@ -132,13 +132,15 @@ public class PurePursuitMarker : MonoBehaviour
 
 
 
-
-
-
+            Debug.Log(delta);
             lf.steerAngle = Mathf.Lerp(lf.steerAngle, delta * Mathf.Rad2Deg, speedRotationAngle);
             rf.steerAngle = Mathf.Lerp(rf.steerAngle, delta * Mathf.Rad2Deg, speedRotationAngle);
             rb.steerAngle = Mathf.Lerp(rb.steerAngle, (delta * Mathf.Rad2Deg) * -1, speedRotationAngle);
             lb.steerAngle = Mathf.Lerp(lb.steerAngle, (delta * Mathf.Rad2Deg) * -1, speedRotationAngle);
+
+
+
+
 
 
             if (vSpeed != 0)
@@ -149,17 +151,19 @@ public class PurePursuitMarker : MonoBehaviour
                 rf.brakeTorque = rb.brakeTorque = 0;
                 lb.brakeTorque = lf.brakeTorque = 0;
 
-
+                //_rb.velocity = new Vector3(vSpeed * Mathf.Cos(vTurn) * dt, 0, vSpeed * Mathf.Sin(vTurn) * dt);
 
                 //я точно не знаю как работаю такие машины. Поэтому сделал движение по той формуле что нашел в интернете для 6 колесных машин
                 //lm.motorTorque = rm.motorTorque = (vSpeed / vTurn) * dt;//Mathf.Abs()
 
 
                 //lm.motorTorque = rm.motorTorque = Mathf.Abs((vSpeed / Mathf.Abs(vTurn)) * dt);
-                lm.motorTorque = rm.motorTorque = (vSpeed / vTurn) * dt;
 
-                //rb.motorTorque = lb.motorTorque = (vSpeed / Mathf.Abs(vTurn)) * dt;
-                //lf.motorTorque = rf.motorTorque = (vSpeed / Mathf.Abs(vTurn)) * dt;
+                lm.motorTorque = rm.motorTorque = vSpeed;
+
+                rb.motorTorque = lb.motorTorque = vSpeed;
+                lf.motorTorque = rf.motorTorque = vSpeed;
+
                 //lf.motorTorque = lb.motorTorque = (vSpeed / Mathf.Abs(vTurn)) * dt;
                 //rb.motorTorque = rf.motorTorque = (vSpeed / Mathf.Abs(vTurn)) * dt;
 
@@ -233,7 +237,7 @@ public class PurePursuitMarker : MonoBehaviour
         {
             Vector3 distancePoint = pointsPath[index + 1].position - pointsPath[index].position;
             //J += Mathf.Sqrt(distancePoint.sqrMagnitude);
-            L += distancePoint.magnitude / 2f;
+            L += distancePoint.magnitude;
 
 
             index++;
@@ -294,7 +298,7 @@ public class PurePursuitMarker : MonoBehaviour
             alpha = Mathf.PI - alpha;
         }
 
-       
+
 
         float Lf = k * vSpeed + Lfc;
 

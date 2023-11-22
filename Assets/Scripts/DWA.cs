@@ -18,7 +18,7 @@ public class DWA : MonoBehaviour
     [Header("Координаты центра масс:")]
     public Vector3 myCenterMass;
 
-    
+
     public Transform[] points;
 
 
@@ -61,7 +61,7 @@ public class DWA : MonoBehaviour
     private Rigidbody _rb;
 
 
-   
+
     public List<Transform> pointsPath;
 
 
@@ -94,11 +94,11 @@ public class DWA : MonoBehaviour
 
     public float max_speed = 1f;//[m/s]
     public float min_speed = -0.5f;//[m/s]
-    public float max_yaw_rate = Convert.ToSingle(40.0 * Mathf.PI / 180.0f); //[rad/s]
+    public float max_yaw_rate = Mathf.Deg2Rad * 50; //[rad/s]
     public float max_accel = 0.2f;  // [m/ss]
-    public float max_delta_yaw_rate = Convert.ToSingle(40.0 * Mathf.PI / 180.0); //[rad/ss]
+    public float max_delta_yaw_rate = Mathf.Deg2Rad * 10; //[rad/ss]
     public float v_resolution = 0.01f; //[m/s]
-    public float yaw_rate_resolution = Convert.ToSingle(0.1 * Mathf.PI / 180.0);  //[rad/s]
+    public float yaw_rate_resolution = Mathf.Deg2Rad * 1;  //[rad/s]
     public float dt = 0.1f; //[s] Time tick for motion prediction
     public float predict_time = 3.0f; //[s]
     public float to_goal_cost_gain = 0.15f;
@@ -109,7 +109,7 @@ public class DWA : MonoBehaviour
     private float[] X;
     private List<float[]> Trajectory = new List<float[]>();
 
-    public float Angle = Convert.ToSingle(Mathf.PI / 8.0f);
+    public float Angle = Mathf.Deg2Rad*60;
 
     public int i = 40;
 
@@ -139,7 +139,7 @@ public class DWA : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        /*
+
         //List<float[]> trajectory = new List<float[]>();
         U = DwaControl(X, pointsPath[i].position, ref Trajectory);
         //Trajectory = trajectory;
@@ -148,13 +148,13 @@ public class DWA : MonoBehaviour
         X = Motion(X, U, dt);
         Trajectory.Add(X);
         //Debug.Log(X[0].ToString() + "\t" + X[1].ToString() + "\t" + X[2].ToString() + "\t" + X[3].ToString() + "\t" + X[4].ToString());
-        
 
 
-        //transform.position = new Vector3(X[0], transform.position.y, X[1] );//*Time.deltaTime
+
+        transform.position = new Vector3(X[0], transform.position.y, X[1]) ;
 
         //X = Motion(X, u, dt);
-        */
+
 
 
 
@@ -195,11 +195,11 @@ public class DWA : MonoBehaviour
 
     }
 
-  
+
     /*
      * DWA
      */
-    /*
+
 
     /// <summary>
     /// 
@@ -304,7 +304,7 @@ public class DWA : MonoBehaviour
         t = bt;
         return u;
     }
-    */
+
 
     /*
      * pp

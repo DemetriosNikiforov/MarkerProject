@@ -1,12 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 
 
 public class pure_pursuit : MonoBehaviour
 {
-
+    [Header("”гол поворота колес")]
+    public float wheelRotationAngle = 30f;
     public float L = 1;
     public int wp = 0;
     public float vx = 0.3f;
@@ -18,6 +21,7 @@ public class pure_pursuit : MonoBehaviour
 
     public List<Transform> pointsPath;
 
+    public MarkerController markerController;
 
     private Rigidbody rb;
 
@@ -36,19 +40,30 @@ public class pure_pursuit : MonoBehaviour
         //dt = Time.deltaTime;
         if (Mathf.Abs(Vector3.Distance(transform.position, pointsPath[pointsPath.Count - 1].position)) > 0.1)
         {
+
             float error = 0;
             w = pure_pursuit_controller(pointsPath, ref error);
             float tdot = position_vector(vx, w, theta);
-            theta = theta + dt * tdot;
 
+
+            theta = ClampAngle((theta + dt * tdot) * Mathf.Rad2Deg, -wheelRotationAngle, wheelRotationAngle) * Mathf.Deg2Rad;
+
+
+
+            markerController.speed = vx;
+            markerController.turn = w;
+            markerController.angle = theta;
         }
     }
+
+
+
 
     float position_vector(float vx, float w, float theta)
     {
 
         //transform.position = transform.position + new Vector3(vx * Mathf.Cos(theta), 0, vx * Mathf.Sin(theta
-        rb.velocity= new Vector3(vx * Mathf.Cos(theta), 0, vx * Mathf.Sin(theta)); 
+        //rb.velocity= new Vector3(vx * Mathf.Cos(theta), 0, vx * Mathf.Sin(theta)); 
         float tdot = w;
 
         if (tdot >= w_limit)
@@ -81,6 +96,14 @@ public class pure_pursuit : MonoBehaviour
                 wp++;
             }
         }
+
+        /*if ((waypoints[wp].position - transform.position).magnitude < 1)
+        {
+            if (wp < waypoints.Count - 2)
+            {
+                wp++;
+            }
+        }*/
 
         float dO = Mathf.Sqrt(Mathf.Pow(transform.position.x - pos0.x, 2) + Mathf.Pow(transform.position.z - pos0.z, 2));
         float dl = 0;
@@ -134,5 +157,21 @@ public class pure_pursuit : MonoBehaviour
     }
 
 
+    private float ClampAngle(float value, float min, float max)
+    {
+        if (value > 180)
+        {
+            value -= 360;
+        }
 
+        if (value < min)
+        {
+            return min;
+        }
+        else if (value > max)
+        {
+            return max;
+        }
+        return value;
+    }
 }

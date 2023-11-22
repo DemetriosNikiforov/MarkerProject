@@ -95,9 +95,9 @@ public class PPM : MonoBehaviour
             w = pure_pursuit_controller(pointsPath, ref error);
             tdot = position_vector(vx, w, theta);
 
-            //theta = theta + dt * tdot;
+            theta = theta + dt * tdot;
 
-            theta = PurePursuitControl(pointsPath);
+            //theta = PurePursuitControl(pointsPath);
 
 
             lf.steerAngle = Mathf.Lerp(lf.steerAngle, theta * Mathf.Rad2Deg, speedRotationAngle);
@@ -105,9 +105,9 @@ public class PPM : MonoBehaviour
             rb.steerAngle = Mathf.Lerp(rb.steerAngle, theta * Mathf.Rad2Deg * -1, speedRotationAngle);
             lb.steerAngle = Mathf.Lerp(lb.steerAngle, theta * Mathf.Rad2Deg * -1, speedRotationAngle);
 
-            lm.motorTorque = rm.motorTorque = vx * dt;
+            lm.motorTorque = rm.motorTorque = vx;
             rb.motorTorque = lb.motorTorque = vx;
-            lf.motorTorque = rf.motorTorque = vx * dt;
+            lf.motorTorque = rf.motorTorque = vx;
 
             Vector3 postionWheels;
 
