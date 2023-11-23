@@ -1,10 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UIElements;
-using static UnityEngine.GraphicsBuffer;
+
 
 
 public class ControllerStates : MonoBehaviour
@@ -18,17 +14,19 @@ public class ControllerStates : MonoBehaviour
 
     private NavMeshAgent agent;
     private NavMeshPath path;
-    private NavMeshPath localPath;
     public int indexPath = 1;
+
+    public bool isRotate;
+
 
     // Start is called before the first frame update
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         path = new NavMeshPath();
-        localPath = new NavMeshPath();
+        agent.updateRotation = false;
 
-        //agent.updatePosition = false;
+        
     }
 
     // Update is called once per frame
@@ -41,37 +39,34 @@ public class ControllerStates : MonoBehaviour
         {
             NavMesh.CalculatePath(transform.position, finish.position, NavMesh.AllAreas, path);
 
-            agent.SetDestination(path.corners[indexPath]);
+            isRotate = RotateAgent(path);
 
             
-            transform.rotation = Quaternion.LookRotation(agent.velocity.normalized);
+            if (agent.pathStatus == NavMeshPathStatus.PathComplete)
+            {
 
-          
+                if (isRotate)
+                {
+                    agent.isStopped = false;
 
-            //Vector3 dir = (path.corners[indexPath] - transform.position).normalized;
-            //Vector3 dir = path.corners[indexPath] - transform.position;
+                    if (indexPath + 1 <= path.corners.Length)
+                    {
+                        indexPath = 1;
+                    }
+                    else if (path.corners.Length == 1)
+                    {
 
-            //float angle = Mathf.Atan2(dir.z, dir.x) * Mathf.Rad2Deg;
+                        indexPath = 0;
+                        agent.SetDestination(path.corners[indexPath]);
+                    }
 
-            //transform.eulerAngles = Mathf.LerpAngle(transform.eulerAngles.y, angle, speedRotation)*Vector3.up;
-
-            //transform.eulerAngles
-
-            //Quaternion rotation = Quaternion.LookRotation(new Vector3(dir.x, 0, dir.y),Vector3.up);
-
-            //transform.rotation = rotation;
-            //Debug.Log(rotation);
-            Debug.Log(transform.rotation);
-
-            //indexPath = 1;
-
-
+                    agent.SetDestination(path.corners[indexPath]);
+                }
 
 
 
 
-
-
+            }
 
 
             for (int i = 0; i < path.corners.Length - 1; i++)
@@ -79,11 +74,6 @@ public class ControllerStates : MonoBehaviour
                 Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.red);
             }
 
-
-
-
-            //agent.destination = finish.position;
-            //agent.path.corners[indexPath]
 
         }
         else if (state == States.Stand)
@@ -100,21 +90,21 @@ public class ControllerStates : MonoBehaviour
 
     }
 
-    private bool LookPoint(NavMeshPath path)
+    private bool RotateAgent(NavMeshPath path)
     {
 
-        Vector3 dir = path.corners[indexPath] - transform.position;
+        Quaternion rotation = Quaternion.LookRotation((path.corners[0] - path.corners[1]).normalized);
+        rotation = Quaternion.Slerp(transform.rotation, rotation, speedRotation * Time.deltaTime);
 
-        float angle = Mathf.LerpAngle(transform.localEulerAngles.y, Mathf.Atan2(dir.z, dir.x) * Mathf.Rad2Deg, speedRotation);
-
-
-        if (transform.eulerAngles.y != angle)
+        if (transform.rotation != rotation)
         {
-            transform.localEulerAngles = new Vector3(transform.eulerAngles.x, angle, transform.eulerAngles.z);
+            agent.isStopped = true;
+            transform.rotation = rotation;
             return false;
-        }
 
+        }
         return true;
+
     }
 
 }

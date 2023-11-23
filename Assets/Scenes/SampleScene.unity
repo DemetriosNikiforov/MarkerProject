@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657874, g: 0.49641275, b: 0.5748171, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -934,6 +934,7 @@ MonoBehaviour:
   finish: {fileID: 1815103368}
   speedRotation: 0.02
   indexPath: 0
+  isRotate: 0
 --- !u!195 &433568276
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -3457,8 +3458,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   state: 0
   finish: {fileID: 1815103368}
-  speedRotation: 0.2
+  speedRotation: 1
   indexPath: 0
+  isRotate: 0
 --- !u!195 &1573635114
 NavMeshAgent:
   m_ObjectHideFlags: 0
