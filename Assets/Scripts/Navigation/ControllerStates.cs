@@ -12,36 +12,39 @@ public class ControllerStates : MonoBehaviour
     [SerializeField]
     private float speedRotation;
 
+
+
     private NavMeshAgent agent;
     private NavMeshPath path;
-    public int indexPath = 1;
+    private int indexPath = 1;
+    //показывает повернулся ли agent
+    private bool isRotate;
 
-    public bool isRotate;
 
 
-    // Start is called before the first frame update
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         path = new NavMeshPath();
         agent.updateRotation = false;
 
-        
+
     }
 
-    // Update is called once per frame
+
     void Update()
     {
+        //создания пути
+        NavMesh.CalculatePath(transform.position, finish.position, NavMesh.AllAreas, path);
 
-
-
+        //сотояние ходьбы к точке
         if (state == States.Walking)
         {
-            NavMesh.CalculatePath(transform.position, finish.position, NavMesh.AllAreas, path);
+
 
             isRotate = RotateAgent(path);
 
-            
+
             if (agent.pathStatus == NavMeshPathStatus.PathComplete)
             {
 
@@ -49,23 +52,10 @@ public class ControllerStates : MonoBehaviour
                 {
                     agent.isStopped = false;
 
-                    if (indexPath + 1 <= path.corners.Length)
-                    {
-                        indexPath = 1;
-                    }
-                    else if (path.corners.Length == 1)
-                    {
+                    agent.destination = path.corners[indexPath];
 
-                        indexPath = 0;
-                        agent.SetDestination(path.corners[indexPath]);
-                    }
 
-                    agent.SetDestination(path.corners[indexPath]);
                 }
-
-
-
-
             }
 
 
@@ -76,9 +66,11 @@ public class ControllerStates : MonoBehaviour
 
 
         }
+
         else if (state == States.Stand)
         {
-            //indexPath = 0;
+            agent.isStopped = true;
+
         }
         else if (state == States.Shoot)
         {
@@ -90,16 +82,28 @@ public class ControllerStates : MonoBehaviour
 
     }
 
+    //функция поворота agenta в сторону следующей точки пути
     private bool RotateAgent(NavMeshPath path)
     {
 
+        //Quaternion rotation = Quaternion.LookRotation((path.corners[0] - path.corners[1]).normalized);
         Quaternion rotation = Quaternion.LookRotation((path.corners[0] - path.corners[1]).normalized);
-        rotation = Quaternion.Slerp(transform.rotation, rotation, speedRotation * Time.deltaTime);
 
+        //Debug.Log(rotation.eulerAngles);
+
+        rotation = Quaternion.Lerp(transform.rotation, rotation, speedRotation * Time.deltaTime);
+
+        //Vector3 angle = Vector3.up * Mathf.LerpAngle(transform.eulerAngles.y, rotation.eulerAngles.y, speedRotation);
+
+
+        //if (transform.eulerAngles.y != angle.y)
         if (transform.rotation != rotation)
         {
+
             agent.isStopped = true;
             transform.rotation = rotation;
+            
+            //transform.eulerAngles = new Vector3(transform.eulerAngles.x, angle.y, transform.eulerAngles.z);
             return false;
 
         }
@@ -111,7 +115,7 @@ public class ControllerStates : MonoBehaviour
 
 enum States
 {
-    Walking = 0,
-    Stand = 1,
+    Walking = 1,
+    Stand = 0,
     Shoot = 2
 }
