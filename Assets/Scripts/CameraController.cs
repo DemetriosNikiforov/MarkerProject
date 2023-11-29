@@ -21,6 +21,6 @@ public class CameraController : MonoBehaviour
         transform.position = marker.transform.position - (rotationCamera * _distance);
 
         transform.LookAt(marker.transform);
-        //transform.rotation = rotationCamera;
+        transform.rotation = rotationCamera;
     }
 }

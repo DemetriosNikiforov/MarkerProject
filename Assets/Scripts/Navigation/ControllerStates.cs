@@ -1,25 +1,30 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-
-
 public class ControllerStates : MonoBehaviour
 {
+    [Header("Состояние GameObject:")]
     [SerializeField]
     private States state;
+
+    [Header("Точка маршрута:")]
     [SerializeField]
     private Transform finish;
+
+    [Header("Скорость поворота GameObject:")]
     [SerializeField]
     private float speedRotation;
 
 
 
-    private NavMeshAgent agent;
-    private NavMeshPath path;
-    private int indexPath = 1;
-    //показывает повернулся ли agent
-    private bool isRotate;
+    private NavMeshAgent _agent;
+    private NavMeshPath _path;
 
+    private int _indexPath = 1;
+
+    private bool _isRotate;
+
+    private Vector3 _lastPoint;
 
     private Animator _animator;
 
@@ -27,66 +32,79 @@ public class ControllerStates : MonoBehaviour
     void Awake()
     {
         _animator = GetComponent<Animator>();
+        _agent = GetComponent<NavMeshAgent>();
 
-        agent = GetComponent<NavMeshAgent>();
-        path = new NavMeshPath();
-        agent.updateRotation = false;
+        _path = new NavMeshPath();
+
+        _agent.updateRotation = false;
 
         transform.localScale = new Vector3(1, 1, -1);
 
     }
 
 
+    // !!!надо по другому анимировать!!!
     void Update()
     {
+        //вычисление пути к указанной точке 
+        NavMesh.CalculatePath(transform.position, finish.position, NavMesh.AllAreas, _path);
 
-
-
-
-
-        //создания пути
-        NavMesh.CalculatePath(transform.position, finish.position, NavMesh.AllAreas, path);
-
-        //сотояние ходьбы к точке
+        //сотояние ходьбы 
         if (state == States.Walking)
         {
+            _animator.SetBool("isShoot", false);
 
-
-            _animator.SetBool("isStand", agent.isStopped);
-            _animator.SetBool("isWalk", isRotate);
-
-            if (agent.pathStatus == NavMeshPathStatus.PathComplete)
+            
+            if (_lastPoint == null)
             {
-
-
-                isRotate = RotateAgent(path);
-
-
-
+                _lastPoint = _agent.destination;
             }
 
 
-            if (isRotate)
+
+
+            if (_lastPoint != _path.corners[0])
             {
+                _isRotate = RotateAgent(_path);
+            }
 
 
-                agent.isStopped = false;
+            if (_isRotate)
+            {
+                _lastPoint = _path.corners[0];
 
-                if (path.corners.Length > 1)
+                _agent.isStopped = false;
+
+                if (_path.corners.Length > 1)
                 {
-                    agent.destination = path.corners[indexPath];
+                    _agent.destination = _path.corners[_indexPath];
                 }
                 else
                 {
-                    agent.destination = path.corners[0];
+                    _agent.destination = _path.corners[0];
                 }
-
 
             }
 
-            for (int i = 0; i < path.corners.Length - 1; i++)
+
+            //анимация ходьбы в зависимости от вектора скорости
+            if (_agent.velocity.sqrMagnitude > 0 && _isRotate)
             {
-                Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.red);
+                _animator.SetBool("isStand", false);
+                _animator.SetBool("isWalk", true);
+            }
+            else
+            {
+                _animator.SetBool("isStand", true);
+                _animator.SetBool("isWalk", false);
+            }
+
+
+
+            for (int i = 0; i < _path.corners.Length - 1; i++)
+            {
+
+                Debug.DrawLine(_path.corners[i], _path.corners[i + 1], Color.red);
             }
 
 
@@ -94,19 +112,21 @@ public class ControllerStates : MonoBehaviour
 
         else if (state == States.Stand)
         {
-            agent.isStopped = true;
+            _agent.isStopped = true;
 
-            _animator.SetBool("isStand", agent.isStopped);
+            _animator.SetBool("isStand", _agent.isStopped);
+            _animator.SetBool("isWalk", false);
+            _animator.SetBool("isShoot", false);
 
         }
         else if (state == States.Shoot)
         {
-            //shoot
+            _agent.isStopped = true;
+
+            _animator.SetBool("isStand", _agent.isStopped);
+            _animator.SetBool("isWalk", false);
+            _animator.SetBool("isShoot", true);
         }
-
-
-
-
     }
 
     //функция поворота agenta в сторону следующей точки пути
@@ -115,29 +135,23 @@ public class ControllerStates : MonoBehaviour
         if (path.corners.Length > 1)
         {
 
+            _agent.isStopped = true;
 
-            //Quaternion rotation = Quaternion.LookRotation((path.corners[0] - path.corners[1]).normalized);
             Quaternion rotation = Quaternion.LookRotation((path.corners[0] - path.corners[1]).normalized);
-
-            //Debug.Log(rotation.eulerAngles);
 
             rotation = Quaternion.Lerp(transform.rotation, rotation, speedRotation * Time.deltaTime);
 
-            //Vector3 angle = Vector3.up * Mathf.LerpAngle(transform.eulerAngles.y, rotation.eulerAngles.y, speedRotation);
-
-
-            //if (transform.eulerAngles.y != angle.y)
-            if (transform.rotation != rotation)
             //if (transform.rotation.eulerAngles.y != rotation.eulerAngles.y)
+            if (transform.rotation != rotation)
             {
 
-                agent.isStopped = true;
                 transform.rotation = rotation;
 
-                //transform.eulerAngles = new Vector3(transform.eulerAngles.x, angle.y, transform.eulerAngles.z);
                 return false;
-
             }
+
+            transform.rotation = rotation;
+
             return true;
         }
         return true;
