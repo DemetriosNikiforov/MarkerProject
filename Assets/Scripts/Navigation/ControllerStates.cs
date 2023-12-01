@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -15,6 +16,17 @@ public class ControllerStates : MonoBehaviour
     [SerializeField]
     private float speedRotation;
 
+    [Header("Время перезарядки:")]
+    [SerializeField]
+    private float timeCoolDawn = 1f;
+
+    [Header("Количество патронов:")]
+    [SerializeField]
+    private int bullets = 15;
+
+    [Header("эффект выстрела:")]
+    [SerializeField]
+    private ParticleSystem shootEffect;
 
 
     private NavMeshAgent _agent;
@@ -27,6 +39,25 @@ public class ControllerStates : MonoBehaviour
     private Vector3 _lastPoint;
 
     private Animator _animator;
+
+    private bool _coolDawn = false;
+
+    private int Bullets
+    {
+
+        get
+        {
+            return bullets;
+        }
+        set
+        {
+            bullets = value;
+            if (bullets < 0)
+            {
+                bullets = 0;
+            }
+        }
+    }
 
 
     void Awake()
@@ -54,7 +85,7 @@ public class ControllerStates : MonoBehaviour
         {
             _animator.SetBool("isShoot", false);
 
-            
+
             if (_lastPoint == null)
             {
                 _lastPoint = _agent.destination;
@@ -121,11 +152,24 @@ public class ControllerStates : MonoBehaviour
         }
         else if (state == States.Shoot)
         {
-            _agent.isStopped = true;
 
+
+            _agent.isStopped = true;
             _animator.SetBool("isStand", _agent.isStopped);
             _animator.SetBool("isWalk", false);
-            _animator.SetBool("isShoot", true);
+
+            if (!_coolDawn && Bullets > 0)
+            {
+                _animator.SetBool("isShoot", !_coolDawn);
+                shootEffect.Play();
+
+                StartCoroutine(ShootCoolDawn());
+            }
+            else
+            {
+                shootEffect.Stop();
+                _animator.SetBool("isShoot", false);
+            }
         }
     }
 
@@ -155,6 +199,16 @@ public class ControllerStates : MonoBehaviour
             return true;
         }
         return true;
+
+    }
+
+    IEnumerator ShootCoolDawn()
+    {
+        _coolDawn = true;
+        yield return new WaitForSeconds(timeCoolDawn);
+
+        Bullets -= 5;
+        _coolDawn = false;
 
     }
 
