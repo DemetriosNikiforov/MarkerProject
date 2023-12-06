@@ -2,31 +2,51 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
+/// <summary>
+/// 
+/// </summary>
 public class ControllerStates : MonoBehaviour
 {
-    [Header("Состояние GameObject:")]
+    [Header("Состояния и параметры GameObject:")]
+
+    [Tooltip("Состояние GameObject:")]
     [SerializeField]
     private States state;
 
-    [Header("Точка маршрута:")]
+    [Tooltip("Начать стрельбу в данном состоянии:")]
     [SerializeField]
-    private Transform finish;
+    private bool _isShoot = false;
 
-    [Header("Скорость поворота GameObject:")]
+    [Tooltip("Скорость поворота GameObject:")]
     [SerializeField]
     private float speedRotation;
 
-    [Header("Время перезарядки:")]
+    [Tooltip("Время перезарядки:")]
     [SerializeField]
     private float timeCoolDawn = 1f;
 
-    [Header("Количество патронов:")]
+    [Tooltip("Количество патронов:")]
     [SerializeField]
     private int bullets = 15;
 
     [Header("эффект выстрела:")]
+
+    [Tooltip("Система частиц выстрела:")]
     [SerializeField]
     private ParticleSystem shootEffect;
+
+    [Tooltip("Время промежутка мкежду эффектот выстрела:")]
+    [SerializeField]
+    private float timeEffectCoolDawn = 0.1f;
+
+    [Header("Точки:")]
+    [Tooltip("Точка маршрута:")]
+    [SerializeField]
+    private Transform finish;
+
+    [Tooltip("Точка атаки:")]
+    [SerializeField]
+    private Transform attackPoint;
 
 
     private NavMeshAgent _agent;
@@ -41,6 +61,8 @@ public class ControllerStates : MonoBehaviour
     private Animator _animator;
 
     private bool _coolDawn = false;
+
+    private bool _startEffect = false;
 
     private int Bullets
     {
@@ -83,7 +105,7 @@ public class ControllerStates : MonoBehaviour
         //сотояние ходьбы 
         if (state == States.Walking)
         {
-            _animator.SetBool("isShoot", false);
+
 
 
             if (_lastPoint == null)
@@ -138,6 +160,11 @@ public class ControllerStates : MonoBehaviour
                 Debug.DrawLine(_path.corners[i], _path.corners[i + 1], Color.red);
             }
 
+            if (_isShoot)
+            {
+                Shoot(2);
+            }
+
 
         }
 
@@ -149,31 +176,55 @@ public class ControllerStates : MonoBehaviour
             _animator.SetBool("isWalk", false);
             _animator.SetBool("isShoot", false);
 
-        }
-        else if (state == States.Shoot)
-        {
-
-
-            _agent.isStopped = true;
-            _animator.SetBool("isStand", _agent.isStopped);
-            _animator.SetBool("isWalk", false);
-
-            if (!_coolDawn && Bullets > 0)
+            if (_isShoot)
             {
-                _animator.SetBool("isShoot", !_coolDawn);
-                shootEffect.Play();
+                Shoot(1);
+            }
 
-                StartCoroutine(ShootCoolDawn());
-            }
-            else
-            {
-                shootEffect.Stop();
-                _animator.SetBool("isShoot", false);
-            }
         }
     }
 
-    //функция поворота agenta в сторону следующей точки пути
+
+
+    /// <summary>
+    /// Функция стрельбы
+    /// </summary>
+    /// <param name="state">Параметр слоя состояния анимации. Для ходьбы 2 а для состояния покоя 1 </param>
+    private void Shoot(int state)
+    {
+        if (!_coolDawn && Bullets > 0)
+        {
+            _coolDawn = true;
+            Bullets -= 1;
+
+            _animator.SetBool("isShoot", true);
+
+
+            StartCoroutine(ShootCoolDawn());
+
+        }
+        else
+        {
+            shootEffect.Stop();
+            _animator.SetBool("isShoot", false);
+        }
+
+
+        //вызов системы частиц для выстрела когда начинается анимация
+        if (_animator.GetCurrentAnimatorStateInfo(state).IsName("Shoot") && !_startEffect)
+        {
+            _startEffect = true;
+
+            StartCoroutine(EffectCoolDown());
+        }
+
+    }
+
+    /// <summary>
+    /// функция поворота agenta в сторону следующей точки пути
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
     private bool RotateAgent(NavMeshPath path)
     {
         if (path.corners.Length > 1)
@@ -202,21 +253,39 @@ public class ControllerStates : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Имитация перезарядки 
+    /// </summary>
+    /// <returns></returns>
     IEnumerator ShootCoolDawn()
     {
-        _coolDawn = true;
-        yield return new WaitForSeconds(timeCoolDawn);
 
-        Bullets -= 5;
+        yield return new WaitForSeconds(timeCoolDawn);
         _coolDawn = false;
+
+    }
+
+    /// <summary>
+    /// Кд между вызовом ситемы частиц для выстрела
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator EffectCoolDown()
+    {
+        shootEffect.Play();
+        yield return new WaitForSeconds(timeEffectCoolDawn);
+
+        _startEffect = false;
+
 
     }
 
 }
 
+/// <summary>
+/// Перечисление состояний
+/// </summary>
 enum States
 {
     Walking = 1,
     Stand = 0,
-    Shoot = 2
 }
