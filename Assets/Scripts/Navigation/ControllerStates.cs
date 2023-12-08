@@ -1,4 +1,5 @@
 using System.Collections;
+using System.IO;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -48,6 +49,14 @@ public class ControllerStates : MonoBehaviour
     [SerializeField]
     private Transform attackPoint;
 
+    [SerializeField]
+    private float radius = 1;
+
+
+    [SerializeField]
+    private LayerMask layerMask;
+
+    
 
     private NavMeshAgent _agent;
     private NavMeshPath _path;
@@ -63,6 +72,12 @@ public class ControllerStates : MonoBehaviour
     private bool _coolDawn = false;
 
     private bool _startEffect = false;
+
+    public float Radius
+    {
+
+        get { return radius; }
+    }
 
     private int Bullets
     {
@@ -165,6 +180,20 @@ public class ControllerStates : MonoBehaviour
                 Shoot(2);
             }
 
+            float distanceToFinish = (transform.position - finish.position).sqrMagnitude;
+
+
+            if (distanceToFinish <= 0.65f)
+            {
+                Collider firsEnemy = SearchEnemy(radius);
+                if (firsEnemy != null)
+                {
+                    RotateToEnemy(firsEnemy.gameObject.transform.position);
+                }
+
+
+            }
+
 
         }
 
@@ -217,6 +246,50 @@ public class ControllerStates : MonoBehaviour
 
             StartCoroutine(EffectCoolDown());
         }
+
+    }
+
+    /// <summary>
+    /// Поиск противников
+    /// </summary>
+    /// <param name="radius"></param>
+    /// <returns></returns>
+    private Collider SearchEnemy(float radius)
+    {
+        Collider[] enemies = Physics.OverlapSphere(transform.position, radius, layerMask);
+
+        foreach (Collider enemy in enemies)
+        {
+            return enemy;
+        }
+        return null;
+    }
+
+
+    /// <summary>
+    /// Поворот в сторону противника
+    /// </summary>
+    /// <param name="enemyPosition"></param>
+    private void RotateToEnemy(Vector3 enemyPosition)
+    {
+
+        Debug.DrawLine(_path.corners[0], enemyPosition);
+
+        
+
+        Quaternion rotation = Quaternion.LookRotation((transform.position - enemyPosition).normalized);
+
+        rotation = Quaternion.Lerp(transform.rotation, rotation, speedRotation * Time.deltaTime);
+
+        //if (transform.rotation.eulerAngles.y != rotation.eulerAngles.y)
+        if (transform.rotation != rotation)
+        {
+
+            transform.rotation = rotation;
+
+        }
+
+        transform.rotation = rotation;
 
     }
 
