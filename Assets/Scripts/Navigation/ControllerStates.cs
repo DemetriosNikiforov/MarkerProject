@@ -1,4 +1,4 @@
-using System.Collections;
+п»їusing System.Collections;
 using System.IO;
 using UnityEngine;
 using UnityEngine.AI;
@@ -8,44 +8,44 @@ using UnityEngine.AI;
 /// </summary>
 public class ControllerStates : MonoBehaviour
 {
-    [Header("Состояния и параметры GameObject:")]
+    [Header("РЎРѕСЃС‚РѕСЏРЅРёСЏ Рё РїР°СЂР°РјРµС‚СЂС‹ GameObject:")]
 
-    [Tooltip("Состояние GameObject:")]
+    [Tooltip("РЎРѕСЃС‚РѕСЏРЅРёРµ GameObject:")]
     [SerializeField]
     private States state;
 
-    [Tooltip("Начать стрельбу в данном состоянии:")]
+    [Tooltip("РќР°С‡Р°С‚СЊ СЃС‚СЂРµР»СЊР±Сѓ РІ РґР°РЅРЅРѕРј СЃРѕСЃС‚РѕСЏРЅРёРё:")]
     [SerializeField]
     private bool _isShoot = false;
 
-    [Tooltip("Скорость поворота GameObject:")]
+    [Tooltip("РЎРєРѕСЂРѕСЃС‚СЊ РїРѕРІРѕСЂРѕС‚Р° GameObject:")]
     [SerializeField]
     private float speedRotation;
 
-    [Tooltip("Время перезарядки:")]
+    [Tooltip("Р’СЂРµРјСЏ РїРµСЂРµР·Р°СЂСЏРґРєРё:")]
     [SerializeField]
     private float timeCoolDawn = 1f;
 
-    [Tooltip("Количество патронов:")]
+    [Tooltip("РљРѕР»РёС‡РµСЃС‚РІРѕ РїР°С‚СЂРѕРЅРѕРІ:")]
     [SerializeField]
     private int bullets = 15;
 
-    [Header("эффект выстрела:")]
+    [Header("СЌС„С„РµРєС‚ РІС‹СЃС‚СЂРµР»Р°:")]
 
-    [Tooltip("Система частиц выстрела:")]
+    [Tooltip("РЎРёСЃС‚РµРјР° С‡Р°СЃС‚РёС† РІС‹СЃС‚СЂРµР»Р°:")]
     [SerializeField]
     private ParticleSystem shootEffect;
 
-    [Tooltip("Время промежутка мкежду эффектот выстрела:")]
+    [Tooltip("Р’СЂРµРјСЏ РїСЂРѕРјРµР¶СѓС‚РєР° РјРєРµР¶РґСѓ СЌС„С„РµРєС‚РѕС‚ РІС‹СЃС‚СЂРµР»Р°:")]
     [SerializeField]
     private float timeEffectCoolDawn = 0.1f;
 
-    [Header("Точки:")]
-    [Tooltip("Точка маршрута:")]
+    [Header("РўРѕС‡РєРё:")]
+    [Tooltip("РўРѕС‡РєР° РјР°СЂС€СЂСѓС‚Р°:")]
     [SerializeField]
     private Transform finish;
 
-    [Tooltip("Точка атаки:")]
+    [Tooltip("РўРѕС‡РєР° Р°С‚Р°РєРё:")]
     [SerializeField]
     private Transform attackPoint;
 
@@ -56,7 +56,10 @@ public class ControllerStates : MonoBehaviour
     [SerializeField]
     private LayerMask layerMask;
 
-    
+    public GameObject gO;
+
+    public HumanBodyBones hbb;
+
 
     private NavMeshAgent _agent;
     private NavMeshPath _path;
@@ -111,13 +114,13 @@ public class ControllerStates : MonoBehaviour
     }
 
 
-    // !!!надо по другому анимировать!!!
+    // !!!РЅР°РґРѕ РїРѕ РґСЂСѓРіРѕРјСѓ Р°РЅРёРјРёСЂРѕРІР°С‚СЊ!!!
     void Update()
     {
-        //вычисление пути к указанной точке 
+        //РІС‹С‡РёСЃР»РµРЅРёРµ РїСѓС‚Рё Рє СѓРєР°Р·Р°РЅРЅРѕР№ С‚РѕС‡РєРµ 
         NavMesh.CalculatePath(transform.position, finish.position, NavMesh.AllAreas, _path);
 
-        //сотояние ходьбы 
+        //СЃРѕС‚РѕСЏРЅРёРµ С…РѕРґСЊР±С‹ 
         if (state == States.Walking)
         {
 
@@ -155,7 +158,7 @@ public class ControllerStates : MonoBehaviour
             }
 
 
-            //анимация ходьбы в зависимости от вектора скорости
+            //Р°РЅРёРјР°С†РёСЏ С…РѕРґСЊР±С‹ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ РІРµРєС‚РѕСЂР° СЃРєРѕСЂРѕСЃС‚Рё
             if (_agent.velocity.sqrMagnitude > 0 && _isRotate)
             {
                 _animator.SetBool("isStand", false);
@@ -214,11 +217,23 @@ public class ControllerStates : MonoBehaviour
     }
 
 
+    private void OnAnimatorIK(int layerIndex)
+    {
+
+
+        //Quaternion handRotation = Quaternion.LookRotation((transform.position - gO.transform.position).normalized);
+
+        //_animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0.5f);
+        //_animator.SetIKRotation(AvatarIKGoal.RightHand, handRotation);
+
+
+    }
+
 
     /// <summary>
-    /// Функция стрельбы
+    /// Р¤СѓРЅРєС†РёСЏ СЃС‚СЂРµР»СЊР±С‹
     /// </summary>
-    /// <param name="state">Параметр слоя состояния анимации. Для ходьбы 2 а для состояния покоя 1 </param>
+    /// <param name="state">РџР°СЂР°РјРµС‚СЂ СЃР»РѕСЏ СЃРѕСЃС‚РѕСЏРЅРёСЏ Р°РЅРёРјР°С†РёРё. Р”Р»СЏ С…РѕРґСЊР±С‹ 2 Р° РґР»СЏ СЃРѕСЃС‚РѕСЏРЅРёСЏ РїРѕРєРѕСЏ 1 </param>
     private void Shoot(int state)
     {
         if (!_coolDawn && Bullets > 0)
@@ -239,7 +254,7 @@ public class ControllerStates : MonoBehaviour
         }
 
 
-        //вызов системы частиц для выстрела когда начинается анимация
+        //РІС‹Р·РѕРІ СЃРёСЃС‚РµРјС‹ С‡Р°СЃС‚РёС† РґР»СЏ РІС‹СЃС‚СЂРµР»Р° РєРѕРіРґР° РЅР°С‡РёРЅР°РµС‚СЃСЏ Р°РЅРёРјР°С†РёСЏ
         if (_animator.GetCurrentAnimatorStateInfo(state).IsName("Shoot") && !_startEffect)
         {
             _startEffect = true;
@@ -250,7 +265,7 @@ public class ControllerStates : MonoBehaviour
     }
 
     /// <summary>
-    /// Поиск противников
+    /// РџРѕРёСЃРє РїСЂРѕС‚РёРІРЅРёРєРѕРІ
     /// </summary>
     /// <param name="radius"></param>
     /// <returns></returns>
@@ -267,7 +282,7 @@ public class ControllerStates : MonoBehaviour
 
 
     /// <summary>
-    /// Поворот в сторону противника
+    /// РџРѕРІРѕСЂРѕС‚ РІ СЃС‚РѕСЂРѕРЅСѓ РїСЂРѕС‚РёРІРЅРёРєР°
     /// </summary>
     /// <param name="enemyPosition"></param>
     private void RotateToEnemy(Vector3 enemyPosition)
@@ -275,9 +290,14 @@ public class ControllerStates : MonoBehaviour
 
         Debug.DrawLine(_path.corners[0], enemyPosition);
 
-        
+        Debug.DrawRay(transform.position, -transform.forward, Color.blue);
 
+       
         Quaternion rotation = Quaternion.LookRotation((transform.position - enemyPosition).normalized);
+        //Quaternion rotation = Quaternion.LookRotation((_path.corners[0] - enemyPosition).normalized);
+        //Quaternion rotation = Quaternion.LookRotation(-gO.transform.forward-enemyPosition);
+
+        
 
         rotation = Quaternion.Lerp(transform.rotation, rotation, speedRotation * Time.deltaTime);
 
@@ -294,7 +314,7 @@ public class ControllerStates : MonoBehaviour
     }
 
     /// <summary>
-    /// функция поворота agenta в сторону следующей точки пути
+    /// С„СѓРЅРєС†РёСЏ РїРѕРІРѕСЂРѕС‚Р° agenta РІ СЃС‚РѕСЂРѕРЅСѓ СЃР»РµРґСѓСЋС‰РµР№ С‚РѕС‡РєРё РїСѓС‚Рё
     /// </summary>
     /// <param name="path"></param>
     /// <returns></returns>
@@ -327,7 +347,7 @@ public class ControllerStates : MonoBehaviour
     }
 
     /// <summary>
-    /// Имитация перезарядки 
+    /// РРјРёС‚Р°С†РёСЏ РїРµСЂРµР·Р°СЂСЏРґРєРё 
     /// </summary>
     /// <returns></returns>
     IEnumerator ShootCoolDawn()
@@ -339,7 +359,7 @@ public class ControllerStates : MonoBehaviour
     }
 
     /// <summary>
-    /// Кд между вызовом ситемы частиц для выстрела
+    /// РљРґ РјРµР¶РґСѓ РІС‹Р·РѕРІРѕРј СЃРёС‚РµРјС‹ С‡Р°СЃС‚РёС† РґР»СЏ РІС‹СЃС‚СЂРµР»Р°
     /// </summary>
     /// <returns></returns>
     IEnumerator EffectCoolDown()
@@ -355,7 +375,7 @@ public class ControllerStates : MonoBehaviour
 }
 
 /// <summary>
-/// Перечисление состояний
+/// РџРµСЂРµС‡РёСЃР»РµРЅРёРµ СЃРѕСЃС‚РѕСЏРЅРёР№
 /// </summary>
 enum States
 {
