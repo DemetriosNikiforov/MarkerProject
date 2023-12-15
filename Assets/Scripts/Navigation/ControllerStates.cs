@@ -2,6 +2,7 @@
 using System.IO;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Animations;
 
 /// <summary>
 /// 
@@ -22,6 +23,10 @@ public class ControllerStates : MonoBehaviour
     [SerializeField]
     private float speedRotation;
 
+    [SerializeField]
+    [Tooltip("Радиус зрения у GameObject:")]
+    private float radius = 1;
+
     [Tooltip("Время перезарядки:")]
     [SerializeField]
     private float timeCoolDawn = 1f;
@@ -29,6 +34,10 @@ public class ControllerStates : MonoBehaviour
     [Tooltip("Количество патронов:")]
     [SerializeField]
     private int bullets = 15;
+
+    [SerializeField]
+    [Tooltip("Наносимый урон:")]
+    private int damage = 1;
 
     [Header("эффект выстрела:")]
 
@@ -45,12 +54,7 @@ public class ControllerStates : MonoBehaviour
     [SerializeField]
     private Transform finish;
 
-    [Tooltip("Точка атаки:")]
-    [SerializeField]
-    private Transform attackPoint;
 
-    [SerializeField]
-    private float radius = 1;
 
 
     [SerializeField]
@@ -58,7 +62,7 @@ public class ControllerStates : MonoBehaviour
 
     public GameObject gO;
 
-    public HumanBodyBones hbb;
+
 
 
     private NavMeshAgent _agent;
@@ -102,14 +106,11 @@ public class ControllerStates : MonoBehaviour
 
     void Awake()
     {
+
         _animator = GetComponent<Animator>();
         _agent = GetComponent<NavMeshAgent>();
 
         _path = new NavMeshPath();
-
-        _agent.updateRotation = false;
-
-        transform.localScale = new Vector3(1, 1, -1);
 
     }
 
@@ -180,7 +181,7 @@ public class ControllerStates : MonoBehaviour
 
             if (_isShoot)
             {
-                Shoot(2);
+                Shoot(1, null);
             }
 
             float distanceToFinish = (transform.position - finish.position).sqrMagnitude;
@@ -191,7 +192,16 @@ public class ControllerStates : MonoBehaviour
                 Collider firsEnemy = SearchEnemy(radius);
                 if (firsEnemy != null)
                 {
-                    RotateToEnemy(firsEnemy.gameObject.transform.position);
+                    bool isRotateToEnemy = RotateToEnemy(firsEnemy.gameObject.transform.position);
+                    if (isRotateToEnemy)
+                    {
+                        Shoot(1, firsEnemy.gameObject);
+
+                    }
+                }
+                else
+                {
+                    _animator.SetBool("isShoot", false);
                 }
 
 
@@ -210,23 +220,10 @@ public class ControllerStates : MonoBehaviour
 
             if (_isShoot)
             {
-                Shoot(1);
+                Shoot(1, null);
             }
 
         }
-    }
-
-
-    private void OnAnimatorIK(int layerIndex)
-    {
-
-
-        //Quaternion handRotation = Quaternion.LookRotation((transform.position - gO.transform.position).normalized);
-
-        //_animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0.5f);
-        //_animator.SetIKRotation(AvatarIKGoal.RightHand, handRotation);
-
-
     }
 
 
@@ -234,13 +231,16 @@ public class ControllerStates : MonoBehaviour
     /// Функция стрельбы
     /// </summary>
     /// <param name="state">Параметр слоя состояния анимации. Для ходьбы 2 а для состояния покоя 1 </param>
-    private void Shoot(int state)
+    private void Shoot(int state, GameObject enemy)
     {
         if (!_coolDawn && Bullets > 0)
         {
             _coolDawn = true;
             Bullets -= 1;
-
+            if (enemy != null)
+            {
+                enemy.SendMessage("Damage", damage);
+            }
             _animator.SetBool("isShoot", true);
 
 
@@ -285,31 +285,23 @@ public class ControllerStates : MonoBehaviour
     /// Поворот в сторону противника
     /// </summary>
     /// <param name="enemyPosition"></param>
-    private void RotateToEnemy(Vector3 enemyPosition)
+    private bool RotateToEnemy(Vector3 enemyPosition)
     {
 
         Debug.DrawLine(_path.corners[0], enemyPosition);
 
-        Debug.DrawRay(transform.position, -transform.forward, Color.blue);
 
-       
-        Quaternion rotation = Quaternion.LookRotation((transform.position - enemyPosition).normalized);
-        //Quaternion rotation = Quaternion.LookRotation((_path.corners[0] - enemyPosition).normalized);
-        //Quaternion rotation = Quaternion.LookRotation(-gO.transform.forward-enemyPosition);
+        float angle = Mathf.Atan2(Vector3.Dot(Vector3.up, Vector3.Cross(gO.transform.forward, (enemyPosition - transform.position).normalized)), Vector3.Dot(gO.transform.forward, (enemyPosition - transform.position).normalized)) * Mathf.Rad2Deg;
+        Vector3 rotation = transform.localEulerAngles + Vector3.up * angle;
 
-        
+        Vector3 lerp = Vector3.Lerp(transform.localEulerAngles, rotation, speedRotation * Time.deltaTime);
 
-        rotation = Quaternion.Lerp(transform.rotation, rotation, speedRotation * Time.deltaTime);
-
-        //if (transform.rotation.eulerAngles.y != rotation.eulerAngles.y)
-        if (transform.rotation != rotation)
+        if (transform.eulerAngles.y != lerp.y && Mathf.Abs(angle) > 1f)
         {
-
-            transform.rotation = rotation;
-
+            transform.localEulerAngles = lerp;
+            return false;
         }
-
-        transform.rotation = rotation;
+        return true;
 
     }
 
@@ -325,7 +317,8 @@ public class ControllerStates : MonoBehaviour
 
             _agent.isStopped = true;
 
-            Quaternion rotation = Quaternion.LookRotation((path.corners[0] - path.corners[1]).normalized);
+            //Quaternion rotation = Quaternion.LookRotation((path.corners[0] - path.corners[1]).normalized);
+            Quaternion rotation = Quaternion.LookRotation((-path.corners[0] + path.corners[1]).normalized);
 
             rotation = Quaternion.Lerp(transform.rotation, rotation, speedRotation * Time.deltaTime);
 

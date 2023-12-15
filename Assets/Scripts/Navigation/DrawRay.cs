@@ -7,6 +7,6 @@ public class DrawRay : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.DrawRay(transform.position, -transform.forward * 100);
+        Gizmos.DrawRay(transform.position, transform.forward * 100);
     }
 }
