@@ -73,9 +73,11 @@ public class ControllerStatesVersion : MonoBehaviour
 
     private Animator _animator;
 
-    private bool _coolDawn = false;
 
-    private bool _startEffect = false;
+
+    private bool _timeLock = false;
+
+    private int _bullets = 0;
 
     public float Radius
     {
@@ -103,9 +105,12 @@ public class ControllerStatesVersion : MonoBehaviour
 
     void Awake()
     {
-
+        _bullets = Bullets;
 
         _animator = GetComponent<Animator>();
+
+        _animator.applyRootMotion = false;
+
         _agent = GetComponent<NavMeshAgent>();
 
         _path = new NavMeshPath();
@@ -182,7 +187,7 @@ public class ControllerStatesVersion : MonoBehaviour
 
             if (_isShoot)
             {
-                Shoot(1, null);
+                Shooting(null);
             }
 
             float distanceToFinish = (transform.position - finish.position).sqrMagnitude;
@@ -190,17 +195,29 @@ public class ControllerStatesVersion : MonoBehaviour
 
             if (distanceToFinish <= 0.8f)
             {
-                _animator.applyRootMotion = false;
                 Collider firsEnemy = SearchEnemy(radius);
                 if (firsEnemy != null)
                 {
-                    bool isRotateToEnemy = RotateToEnemy(firsEnemy.gameObject.transform.position);
+                    bool isRotateToEnemy = true;
+
+                    if (_timeLock == false)
+                    {
+                        isRotateToEnemy = RotateToEnemy(firsEnemy.gameObject.transform.position);
+
+                        _animator.SetTrigger("stopShoot");
+                    }
+
                     if (isRotateToEnemy)
                     {
-                        Shoot(1, firsEnemy.gameObject);
+                        Shooting(firsEnemy.gameObject);
 
                     }
                 }
+                else
+                {
+                    _animator.SetTrigger("stopShoot");
+                }
+               
 
 
 
@@ -219,49 +236,15 @@ public class ControllerStatesVersion : MonoBehaviour
 
             if (_isShoot)
             {
-                Shoot(1, null);
+                Shooting(null);
             }
 
         }
     }
 
 
-    /// <summary>
-    /// Функция стрельбы
-    /// </summary>
-    /// <param name="state">Параметр слоя состояния анимации. Для ходьбы 2 а для состояния покоя 1 </param>
-    private void Shoot(int state, GameObject enemy)
-    {
-        if (!_coolDawn && Bullets > 0)
-        {
-            _coolDawn = true;
-            Bullets -= 1;
-            if (enemy != null)
-            {
-                enemy.SendMessage("Damage", damage);
-            }
-            _animator.SetTrigger("shoot");
 
 
-            StartCoroutine(ShootCoolDawn());
-
-        }
-        else
-        {
-            shootEffect.Stop();
-
-        }
-
-
-        //вызов системы частиц для выстрела когда начинается анимация
-        if (_animator.GetCurrentAnimatorStateInfo(state).IsName("Shoot") && !_startEffect)
-        {
-            _startEffect = true;
-
-            StartCoroutine(EffectCoolDown());
-        }
-
-    }
 
     /// <summary>
     /// Поиск противников
@@ -293,13 +276,16 @@ public class ControllerStatesVersion : MonoBehaviour
         float angle = Mathf.Atan2(Vector3.Dot(Vector3.up, Vector3.Cross(gO.transform.forward, (enemyPosition - transform.position).normalized)), Vector3.Dot(gO.transform.forward, (enemyPosition - transform.position).normalized)) * Mathf.Rad2Deg;
         Vector3 rotation = transform.localEulerAngles + Vector3.up * angle;
 
-        Vector3 lerp = Vector3.Lerp(transform.localEulerAngles, rotation, speedRotation * Time.deltaTime);
+        Vector3 lerp = Vector3.up * Mathf.LerpAngle(transform.localEulerAngles.y, rotation.y, speedRotation * Time.deltaTime); //Vector3.Lerp(transform.localEulerAngles, rotation, speedRotation * Time.deltaTime);
 
         if (transform.eulerAngles.y != lerp.y && Mathf.Abs(angle) > 1f)
         {
+
             transform.localEulerAngles = lerp;
+
             return false;
         }
+
         return true;
 
     }
@@ -316,7 +302,7 @@ public class ControllerStatesVersion : MonoBehaviour
 
             _agent.isStopped = true;
 
-            _animator.applyRootMotion = false;
+
 
             //Quaternion rotation = Quaternion.LookRotation((path.corners[0] - path.corners[1]).normalized);
             Quaternion rotation = Quaternion.LookRotation((-path.corners[0] + path.corners[1]).normalized);
@@ -334,39 +320,83 @@ public class ControllerStatesVersion : MonoBehaviour
 
             transform.rotation = rotation;
 
-            _animator.applyRootMotion = true;
+
 
             return true;
         }
+
         return true;
 
     }
 
     /// <summary>
-    /// Имитация перезарядки 
+    /// Функция стрельбы
     /// </summary>
-    /// <returns></returns>
-    IEnumerator ShootCoolDawn()
+    /// <param name="enemy">Игровой обьект врага</param>
+    private void Shooting(GameObject enemy)
     {
+        if (_timeLock == false)
+        {
+            //переменная для кулдауна
+            _timeLock = true;
 
-        yield return new WaitForSeconds(timeCoolDawn);
-        _coolDawn = false;
+            //если найден противник и есть пули то производится выстрел
+            if (enemy != null && Bullets > 0)
+            {
+                Bullets -= 1;
 
+                shootEffect.Play();
+
+                _animator.SetTrigger("shoot");
+
+                enemy.SendMessage("Damage", damage);
+            }
+
+            //когда произведено 5 выстрелов наступает кулдаун перезарядки
+            if (_bullets - Bullets == 5)
+            {
+                _bullets = Bullets;
+                StartCoroutine(CoolDownShoting(timeCoolDawn + shootEffect.main.duration));
+            }
+            //кулдаун для выполнения системы частиц при выстреле
+            else if (_bullets != 0)
+            {
+                StartCoroutine(CoolDownShoting(shootEffect.main.duration));
+            }
+
+        }
+        else
+        {
+            //если система частиц выстрела не воспроизводится то меняем анимацию
+            if (!shootEffect.isPlaying)
+            {
+                _animator.SetTrigger("stopShoot");
+                shootEffect.Stop();
+            }
+            //иначе оставляем анимацию выстрела
+            else
+            {
+                _animator.SetTrigger("shoot");
+            }
+
+
+        }
     }
 
     /// <summary>
-    /// Кд между вызовом ситемы частиц для выстрела
+    /// Корутина для кулдауна выстрелов
     /// </summary>
+    /// <param name="time">Время кулдауна</param>
     /// <returns></returns>
-    IEnumerator EffectCoolDown()
+    IEnumerator CoolDownShoting(float time)
     {
-        shootEffect.Play();
-        yield return new WaitForSeconds(timeEffectCoolDawn);
+        yield return new WaitForSeconds(time);
+        _timeLock = false;
 
-        _startEffect = false;
-
-
+        //место для выполнения инструкций после кулдауна
     }
+
+
 
     /// <summary>
     /// Перечисление состояний
