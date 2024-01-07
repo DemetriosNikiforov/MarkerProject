@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -51,6 +52,19 @@ public class ControllerStatesVersion : MonoBehaviour
     [SerializeField]
     private Transform finish;
 
+    [Header("Состояния и параметры ручного управления:")]
+
+    [SerializeField]
+    [Tooltip("Переключение на ручное управление:")]
+    private bool manualOperation = false;
+
+    [SerializeField]
+    [Tooltip("Скорость поворота при ручном управлении:")]
+    private float manualSpeedRotation = 1f;
+
+    [SerializeField]
+    [Tooltip("Скорость поворота при ручном управлении:")]
+    private float manualSpeed = 1f;
 
 
 
@@ -58,7 +72,6 @@ public class ControllerStatesVersion : MonoBehaviour
     private LayerMask layerMask;
 
     public GameObject gO;
-
 
 
 
@@ -117,129 +130,147 @@ public class ControllerStatesVersion : MonoBehaviour
 
         _animator.SetFloat("speed", _agent.speed);
 
+
+
     }
 
 
     // !!!надо по другому анимировать!!!
     void Update()
     {
-        //вычисление пути к указанной точке 
-        NavMesh.CalculatePath(transform.position, finish.position, NavMesh.AllAreas, _path);
-
-        //сотояние ходьбы 
-        if (state == States.Walking)
+        if (manualOperation == false)
         {
+            //вычисление пути к указанной точке 
+            NavMesh.CalculatePath(transform.position, finish.position, NavMesh.AllAreas, _path);
 
-
-
-            if (_lastPoint == null)
+            //сотояние ходьбы 
+            if (state == States.Walking)
             {
-                _lastPoint = _agent.destination;
-            }
 
 
 
-
-            if (_lastPoint != _path.corners[0])
-            {
-                _isRotate = RotateAgent(_path);
-            }
-
-
-            if (_isRotate)
-            {
-                _lastPoint = _path.corners[0];
-
-                _agent.isStopped = false;
-
-                if (_path.corners.Length > 1)
+                if (_lastPoint == null)
                 {
-                    _agent.destination = _path.corners[_indexPath];
+                    _lastPoint = _agent.destination;
+                }
+
+
+
+
+                if (_lastPoint != _path.corners[0])
+                {
+                    _isRotate = RotateAgent(_path);
+                }
+
+
+                if (_isRotate)
+                {
+                    _lastPoint = _path.corners[0];
+
+                    _agent.isStopped = false;
+
+                    if (_path.corners.Length > 1)
+                    {
+                        _agent.destination = _path.corners[_indexPath];
+                    }
+                    else
+                    {
+                        _agent.destination = _path.corners[0];
+                    }
+
+                }
+
+
+                //анимация ходьбы в зависимости от вектора скорости
+                if (_agent.velocity.sqrMagnitude > 0 && _isRotate)
+                {
+                    _animator.SetBool("isWalk", true);
+
                 }
                 else
                 {
-                    _agent.destination = _path.corners[0];
+                    _animator.SetBool("isWalk", false);
+
+
                 }
 
-            }
 
 
-            //анимация ходьбы в зависимости от вектора скорости
-            if (_agent.velocity.sqrMagnitude > 0 && _isRotate)
-            {
-                _animator.SetBool("isWalk", true);
-
-            }
-            else
-            {
-                _animator.SetBool("isWalk", false);
-
-
-            }
-
-
-
-            for (int i = 0; i < _path.corners.Length - 1; i++)
-            {
-
-                Debug.DrawLine(_path.corners[i], _path.corners[i + 1], Color.red);
-            }
-
-            if (_isShoot)
-            {
-                Shooting(null);
-            }
-
-            float distanceToFinish = (transform.position - finish.position).sqrMagnitude;
-
-
-            if (distanceToFinish <= 0.8f)
-            {
-                Collider firsEnemy = SearchEnemy(radius);
-                if (firsEnemy != null)
+                for (int i = 0; i < _path.corners.Length - 1; i++)
                 {
-                    bool isRotateToEnemy = true;
 
-                    if (_timeLock == false)
+                    Debug.DrawLine(_path.corners[i], _path.corners[i + 1], Color.red);
+                }
+
+                if (_isShoot)
+                {
+                    Shooting(null);
+                }
+
+                float distanceToFinish = (transform.position - finish.position).sqrMagnitude;
+
+
+                if (distanceToFinish <= 0.8f)
+                {
+                    Collider firsEnemy = SearchEnemy(radius);
+                    if (firsEnemy != null)
                     {
-                        isRotateToEnemy = RotateToEnemy(firsEnemy.gameObject.transform.position);
+                        bool isRotateToEnemy = true;
 
+                        if (_timeLock == false)
+                        {
+                            isRotateToEnemy = RotateToEnemy(firsEnemy.gameObject.transform.position);
+
+                            _animator.SetTrigger("stopShoot");
+                        }
+
+                        if (isRotateToEnemy)
+                        {
+                            Shooting(firsEnemy.gameObject);
+
+                        }
+                    }
+                    else
+                    {
                         _animator.SetTrigger("stopShoot");
                     }
 
-                    if (isRotateToEnemy)
-                    {
-                        Shooting(firsEnemy.gameObject);
 
-                    }
-                }
-                else
-                {
-                    _animator.SetTrigger("stopShoot");
-                }
-               
 
+
+                }
 
 
             }
 
-
-        }
-
-        else if (state == States.Stand)
-        {
-            _agent.isStopped = true;
-
-            _animator.SetBool("isWalk", false);
-
-
-
-            if (_isShoot)
+            else if (state == States.Stand)
             {
-                Shooting(null);
+                _agent.isStopped = true;
+
+                _animator.SetBool("isWalk", false);
+
+
+
+                if (_isShoot)
+                {
+                    Shooting(null);
+                }
+
             }
 
         }
+        else
+        {
+
+            ManualMovementAndRotate(Time.deltaTime);
+
+            if (Input.GetKey(KeyCode.Mouse0))
+            {
+                ManualShooting();
+            }
+
+        }
+
     }
 
 
@@ -394,6 +425,69 @@ public class ControllerStatesVersion : MonoBehaviour
         _timeLock = false;
 
         //место для выполнения инструкций после кулдауна
+    }
+
+
+    IEnumerator ManualCoolDownShoting(float time, bool indecatorTimeLock = false)
+    {
+        yield return new WaitForSeconds(time);
+
+
+        _timeLock = indecatorTimeLock;
+
+
+
+        //место для выполнения инструкций после кулдауна
+        _animator.SetTrigger("stopShoot");
+
+
+    }
+
+
+    private void ManualMovementAndRotate(float time)
+    {
+        transform.localEulerAngles += Vector3.up * Input.GetAxis("Horizontal") * manualSpeedRotation * time;
+
+        transform.Translate(Vector3.forward * manualSpeed * Input.GetAxis("Vertical") * time);
+
+        _animator.SetBool("isWalk", Convert.ToBoolean(Input.GetAxis("Vertical")));
+
+        _animator.SetFloat("speed", Input.GetAxis("Vertical") * manualSpeed);
+    }
+
+    private void ManualShooting()
+    {
+        if (_timeLock == false)
+        {
+            //переменная для кулдауна
+            _timeLock = true;
+
+
+            if (Bullets > 0)
+            {
+                Bullets -= 1;
+
+                shootEffect.Play();
+
+                _animator.SetTrigger("shoot");
+
+            }
+
+            //когда произведено 5 выстрелов наступает кулдаун перезарядки
+            if (_bullets - Bullets == 30)
+            {
+                _bullets = Bullets;
+                StartCoroutine(ManualCoolDownShoting(shootEffect.main.duration, true));
+                StartCoroutine(CoolDownShoting(timeCoolDawn));
+            }
+            //кулдаун для выполнения системы частиц при выстреле
+            else if (_bullets != 0)
+            {
+                StartCoroutine(ManualCoolDownShoting(shootEffect.main.duration));
+            }
+
+        }
+
     }
 
 

@@ -689,7 +689,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 161415408}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.31180882, y: 0.000000028316524, z: -0.000000009292627, w: 0.9501449}
+  m_LocalRotation: {x: 0.16049767, y: -0, z: -0, w: 0.9870362}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -851,7 +851,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 218718103}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.27708912, y: -0.000000016532653, z: 0.000000004767701, w: 0.9608443}
+  m_LocalRotation: {x: 0.14256498, y: 0.000000006109219, z: -8.7994884e-10, w: 0.9897855}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -6292,8 +6292,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9384ab8608cdc3d479fe89cd51eed48f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_BindingMode: 1
-  m_FollowOffset: {x: 0, y: 0, z: -10}
+  m_BindingMode: 4
+  m_FollowOffset: {x: 0, y: 3, z: -8}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -12682,7 +12682,7 @@ MonoBehaviour:
   m_ZDamping: 1
   m_AngularDampingMode: 0
   m_PitchDamping: 0
-  m_YawDamping: 0
+  m_YawDamping: 1
   m_RollDamping: 0
   m_AngularDamping: 0
 --- !u!114 &777747872
@@ -13186,8 +13186,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 26.098658, y: 1.6000006, z: 0.2814065}
+  m_LocalRotation: {x: 0.17842484, y: 0.000000016930283, z: -0.0000000030700462, w: 0.98395354}
+  m_LocalPosition: {x: 26.098658, y: 3.0500007, z: -7.8185935}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -13738,8 +13738,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9384ab8608cdc3d479fe89cd51eed48f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_BindingMode: 1
-  m_FollowOffset: {x: 0, y: 0, z: -10}
+  m_BindingMode: 4
+  m_FollowOffset: {x: 0, y: 3, z: -8}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -15866,7 +15866,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1460352275}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.31180882, y: -3.3755927e-15, z: 1.995946e-15, w: 0.9501449}
+  m_LocalRotation: {x: 0.17842482, y: 0.000000008465146, z: -0.0000000015350239, w: 0.98395354}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -17501,7 +17501,7 @@ MonoBehaviour:
         m_Calls: []
   m_LegacyBlendHint: 0
   m_YAxis:
-    Value: 0.5
+    Value: 1
     m_SpeedMode: 0
     m_MaxSpeed: 2
     m_AccelTime: 0.2
@@ -17555,12 +17555,12 @@ MonoBehaviour:
   m_BindingMode: 4
   m_SplineCurvature: 0.2
   m_Orbits:
-  - m_Height: 5.15
-    m_Radius: 3.5
-  - m_Height: 4.5
-    m_Radius: 4.5
-  - m_Height: 0.2
-    m_Radius: 1.8
+  - m_Height: 3
+    m_Radius: 8
+  - m_Height: 2.5
+    m_Radius: 7
+  - m_Height: 2
+    m_Radius: 5
   m_LegacyHeadingBias: 3.4028235e+38
   m_Rigs:
   - {fileID: 1460352278}
@@ -17575,7 +17575,7 @@ Transform:
   m_GameObject: {fileID: 2011221055}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 26.098658, y: 4.5500007, z: -4.3185935}
+  m_LocalPosition: {x: 26.098658, y: 3.0500007, z: -7.8185935}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -17830,8 +17830,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9384ab8608cdc3d479fe89cd51eed48f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_BindingMode: 1
-  m_FollowOffset: {x: 0, y: 0, z: -10}
+  m_BindingMode: 4
+  m_FollowOffset: {x: 0, y: 3, z: -8}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -22035,14 +22035,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   state: 0
   _isShoot: 0
-  speedRotation: 0.9
+  speedRotation: 2
   radius: 20
   timeCoolDawn: 2
-  bullets: 15
+  bullets: 100
   damage: 1
   shootEffect: {fileID: 8944872516829537873}
   timeEffectCoolDawn: 0.1
   finish: {fileID: 1815103368}
+  manualOperation: 0
+  manualSpeedRotation: 80
+  manualSpeed: 6
   layerMask:
     serializedVersion: 2
     m_Bits: 64
