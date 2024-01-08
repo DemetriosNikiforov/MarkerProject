@@ -71,7 +71,7 @@ public class ControllerStatesVersion : MonoBehaviour
     [SerializeField]
     private LayerMask layerMask;
 
-    public GameObject gO;
+    public GameObject weapon;
 
 
 
@@ -185,11 +185,13 @@ public class ControllerStatesVersion : MonoBehaviour
                 if (_agent.velocity.sqrMagnitude > 0 && _isRotate)
                 {
                     _animator.SetBool("isWalk", true);
+                    _animator.SetFloat("speed", _agent.speed);
 
                 }
                 else
                 {
                     _animator.SetBool("isWalk", false);
+                    _animator.SetFloat("speed", 0);
 
 
                 }
@@ -261,6 +263,9 @@ public class ControllerStatesVersion : MonoBehaviour
         }
         else
         {
+            Debug.DrawRay(weapon.transform.position + Vector3.up * 0.06f, Vector3.up * 0.06f + weapon.transform.forward * 100, Color.blue);
+
+            _agent.isStopped = true;
 
             ManualMovementAndRotate(Time.deltaTime);
 
@@ -304,7 +309,7 @@ public class ControllerStatesVersion : MonoBehaviour
         Debug.DrawLine(_path.corners[0], enemyPosition);
 
 
-        float angle = Mathf.Atan2(Vector3.Dot(Vector3.up, Vector3.Cross(gO.transform.forward, (enemyPosition - transform.position).normalized)), Vector3.Dot(gO.transform.forward, (enemyPosition - transform.position).normalized)) * Mathf.Rad2Deg;
+        float angle = Mathf.Atan2(Vector3.Dot(Vector3.up, Vector3.Cross(weapon.transform.forward, (enemyPosition - transform.position).normalized)), Vector3.Dot(weapon.transform.forward, (enemyPosition - transform.position).normalized)) * Mathf.Rad2Deg;
         Vector3 rotation = transform.localEulerAngles + Vector3.up * angle;
 
         Vector3 lerp = Vector3.up * Mathf.LerpAngle(transform.localEulerAngles.y, rotation.y, speedRotation * Time.deltaTime); //Vector3.Lerp(transform.localEulerAngles, rotation, speedRotation * Time.deltaTime);

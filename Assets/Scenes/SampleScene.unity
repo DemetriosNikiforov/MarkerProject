@@ -22049,7 +22049,7 @@ MonoBehaviour:
   layerMask:
     serializedVersion: 2
     m_Bits: 64
-  gO: {fileID: 6437538085264163967}
+  weapon: {fileID: 6437538085264163967}
 --- !u!114 &5601217822422846441
 MonoBehaviour:
   m_ObjectHideFlags: 0
